@@ -1,40 +1,31 @@
+import os
 import telebot
-from flask import Flask
-import threading
 
-# بياناتك
-TOKEN = '8774372608:AAEeBHtIwrtMhck96ftRGPJJlRlSps5aq9w'
-ADMIN_ID = '8405924856'
+TOKEN = os.environ.get("BOT_TOKEN", "")
+ADMIN_CHAT_ID = os.environ.get("ADMIN_CHAT_ID", "")
 
 bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__)
 
-# مسار وهمي عشان موقع UptimeRobot يزوره وميفصلش السيرفر
-@app.route('/')
-def home():
-    return "Bot is awake and running! 🚀"
 
-# رسالة الترحيب
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "أهلاً بك! 🌟\nابعتلي أي صورة هنا، وهتوصل للمسؤول فوراً.")
+    bot.reply_to(
+        message,
+        "أهلاً بك في بوت قناة Min Al-Sifr Tech! 🚀\n"
+        "أرسل لي سكرين شوت أو صورة الإيموجيز المخفية للمشاركة في السحب.",
+    )
 
-# استقبال الصور
-@bot.message_handler(content_types=['photo'])
+
+@bot.message_handler(content_types=['photo', 'document'])
 def handle_docs_photo(message):
     try:
-        bot.forward_message(ADMIN_ID, message.chat.id, message.message_id)
-        bot.reply_to(message, "تم استلام الصورة وإرسالها بنجاح! 🚀")
+        bot.forward_message(ADMIN_CHAT_ID, message.chat.id, message.message_id)
+        bot.reply_to(message, "تم استلام الصورة بنجاح! 🎯 بالتوفيق في الجيف أواي.")
     except Exception as e:
-        bot.reply_to(message, "عذراً، حدث خطأ أثناء إرسال الصورة.")
-        print(f"Error: {e}")
+        print(f"Error forwarding message: {e}")
+        bot.reply_to(message, "عذراً، حدث خطأ أثناء الإرسال. تأكد من إرسال الصورة بشكل صحيح.")
 
-# دالة تشغيل البوت
-def run_bot():
-    bot.infinity_polling()
 
 if __name__ == "__main__":
-    # تشغيل البوت في مسار منفصل (Thread) عشان ما يعطلش الويب
-    threading.Thread(target=run_bot).start()
-    # تشغيل سيرفر فلاسك
-    app.run(host="0.0.0.0", port=8080)
+    print("البوت يعمل الآن ومستعد لاستقبال الصور...")
+    bot.infinity_polling(none_stop=True, timeout=60, long_polling_timeout=60)
